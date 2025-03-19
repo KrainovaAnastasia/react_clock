@@ -59,7 +59,7 @@ export class App extends React.Component {
   state = {
     hasClock: true,
     clockName: 'Clock-0',
-    justReappeared: false, // New flag
+    justReappeared: false,
   };
 
   componentDidMount() {
@@ -72,20 +72,6 @@ export class App extends React.Component {
     document.removeEventListener('contextmenu', this.handleRightClick);
     document.removeEventListener('click', this.handleLeftClick);
     this.stopClockNameUpdater();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.clockName !== this.state.clockName &&
-      !this.state.justReappeared
-    ) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        `Renamed from ${prevState.clockName} to ${this.state.clockName}`,
-      );
-    } else if (this.state.justReappeared) {
-      this.setState({ justReappeared: false });
-    }
   }
 
   startClockNameUpdater = () => {
@@ -107,19 +93,33 @@ export class App extends React.Component {
 
   handleRightClick = event => {
     event.preventDefault();
-    this.setState({ hasClock: false, justReappeared: false });
+    this.setState({ hasClock: false });
   };
 
   handleLeftClick = event => {
     event.preventDefault();
-    this.setState({ hasClock: true, justReappeared: true });
+    const newClockName = getRandomName();
+
+    this.setState({ hasClock: true, clockName: newClockName }, () => {
+      this.startClockNameUpdater();
+    });
   };
 
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.clockName !== this.state.clockName) {
+      console.warn(
+        `Renamed from ${prevState.clockName} to ${this.state.clockName}`,
+      );
+    }
+  }
+
   render() {
+    const { hasClock, clockName } = this.state;
+
     return (
       <div className="App">
         <h1>React clock</h1>
-        {this.state.hasClock && <Clock name={this.state.clockName} />}
+        {hasClock && <Clock name={clockName || getRandomName()} />}
       </div>
     );
   }
